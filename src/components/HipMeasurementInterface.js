@@ -96,7 +96,7 @@ const HipMeasurementInterface = () => {
     }));
   };
 
-// Function to copy data as HTML table for better pasting into Word/Epic
+/// Modern approach using Clipboard API with explicit HTML format
 const copyToClipboard = () => {
   // Create rows for our data
   const rows = [
@@ -117,60 +117,86 @@ const copyToClipboard = () => {
     ['Cross-over sign (figure of 8)', measurements.crossoverSign.right ? 'Ja' : 'Nein', measurements.crossoverSign.left ? 'Ja' : 'Nein', 'Nein']
   ];
 
-  // Create HTML table
-  let htmlTable = '<table border="1" cellpadding="4" cellspacing="0">';
+  // Create HTML table with proper Word-compatible styling
+  let htmlTable = '<table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse;">';
   
-  // Add all rows to the HTML table
-  rows.forEach((row, rowIndex) => {
+  // Add header row with bold styling
+  htmlTable += '<tr>';
+  rows[0].forEach(header => {
+    htmlTable += `<th style="background-color: #f2f2f2; font-weight: bold; padding: 8px; border: 1px solid #ddd;">${header}</th>`;
+  });
+  htmlTable += '</tr>';
+  
+  // Add data rows
+  for (let i = 1; i < rows.length; i++) {
     htmlTable += '<tr>';
-    row.forEach((cell, cellIndex) => {
-      // Use th for header row, td for data rows
-      const cellTag = rowIndex === 0 ? 'th' : 'td';
-      htmlTable += `<${cellTag}>${cell}</${cellTag}>`;
+    rows[i].forEach((cell, index) => {
+      // Make first column (parameter names) bold
+      if (index === 0) {
+        htmlTable += `<td style="font-weight: bold; padding: 8px; border: 1px solid #ddd;">${cell}</td>`;
+      } else {
+        htmlTable += `<td style="padding: 8px; border: 1px solid #ddd;">${cell}</td>`;
+      }
     });
     htmlTable += '</tr>';
-  });
+  }
   
   htmlTable += '</table>';
   
-  // Also create plain text version as fallback
+  // Create plain text version as fallback
   let plainText = '';
   rows.forEach(row => {
     plainText += row.join('\t') + '\n';
   });
 
-  // Create a temporary element to hold the HTML
-  const tempElement = document.createElement('div');
-  tempElement.innerHTML = htmlTable;
-  document.body.appendChild(tempElement);
-  
-  // Select the content
-  const range = document.createRange();
-  range.selectNode(tempElement);
-  window.getSelection().removeAllRanges();
-  window.getSelection().addRange(range);
-  
-  try {
-    // Try to copy as HTML (this works in most modern browsers)
-    const successful = document.execCommand('copy');
+  // Use the modern Clipboard API
+  if (navigator.clipboard && navigator.clipboard.write) {
+    const blob = new Blob([htmlTable], { type: 'text/html' });
+    const plainBlob = new Blob([plainText], { type: 'text/plain' });
     
-    if (!successful) {
-      // Fallback to plain text if HTML copy fails
-      navigator.clipboard.writeText(plainText);
+    const data = [
+      new ClipboardItem({
+        'text/html': blob,
+        'text/plain': plainBlob
+      })
+    ];
+    
+    navigator.clipboard.write(data)
+      .then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      })
+      .catch(err => {
+        console.error('Failed to copy: ', err);
+        // Fallback to the basic text copy
+        navigator.clipboard.writeText(plainText)
+          .then(() => {
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+          });
+      });
+  } else {
+    // For browsers that don't support clipboard.write API
+    // Use a hidden textarea approach
+    const textArea = document.createElement('textarea');
+    textArea.value = plainText;
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-999999px';
+    textArea.style.top = '-999999px';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
+    try {
+      document.execCommand('copy');
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Fallback: Copying text failed', err);
     }
     
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  } catch (err) {
-    // Final fallback
-    navigator.clipboard.writeText(plainText);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    document.body.removeChild(textArea);
   }
-  
-  // Clean up
-  window.getSelection().removeAllRanges();
-  document.body.removeChild(tempElement);
 };
 
   return (
