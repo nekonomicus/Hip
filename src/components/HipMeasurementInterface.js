@@ -96,38 +96,82 @@ const HipMeasurementInterface = () => {
     }));
   };
 
-  const copyToClipboard = () => {
-    // Create table rows
-    const rows = [
-      ['Parameter', 'Rechts', 'Links', 'Referenzbereich'],
-      ['MRI', measurements.mri.right ? 'Ja' : 'Nein', measurements.mri.left ? 'Ja' : 'Nein', '-'],
-      ['Femorale Torsion (nach Murphy)', measurements.femoralTorsion.right ? `${measurements.femoralTorsion.right}°` : '-', measurements.femoralTorsion.left ? `${measurements.femoralTorsion.left}°` : '-', '10–25°'],
-      ['Tibiale Torsion (Bimalleolare Methode)', measurements.tibialTorsion.right ? `${measurements.tibialTorsion.right}°` : '-', measurements.tibialTorsion.left ? `${measurements.tibialTorsion.left}°` : '-', '15–30°'],
-      ['Röntgen/EOS', measurements.xrayEOS.right ? 'Ja' : 'Nein', measurements.xrayEOS.left ? 'Ja' : 'Nein', '-'],
-      ['Beinlänge', measurements.legLength.right || 'N/A', measurements.legLength.left || 'N/A', '-'],
-      ['CCD-Winkel', measurements.ccd.right ? `${measurements.ccd.right}°` : '-', measurements.ccd.left ? `${measurements.ccd.left}°` : '-', '120–135°'],
-      ['Alpha-Winkel', measurements.alpha.right ? `${measurements.alpha.right}°` : '-', measurements.alpha.left ? `${measurements.alpha.left}°` : '-', '<60°'],
-      ['LCE-Winkel', measurements.lce.right ? `${measurements.lce.right}°` : '-', measurements.lce.left ? `${measurements.lce.left}°` : '-', '23–33°'],
-      ['Azetabulärer Index', measurements.acetabularIndex.right ? `${measurements.acetabularIndex.right}°` : '-', measurements.acetabularIndex.left ? `${measurements.acetabularIndex.left}°` : '-', '3–13°'],
-      ['Crossing Sign', measurements.crossingSign.right ? 'Ja' : 'Nein', measurements.crossingSign.left ? 'Ja' : 'Nein', 'Nein'],
-      ['Ischial Spine Sign', measurements.ischialSpineSign.right ? 'Ja' : 'Nein', measurements.ischialSpineSign.left ? 'Ja' : 'Nein', 'Nein'],
-      ['Posterior Wall Sign', measurements.posteriorWallSign.right ? 'Ja' : 'Nein', measurements.posteriorWallSign.left ? 'Ja' : 'Nein', 'Nein'],
-      ['Retroversion-Index', measurements.retroversionIndex.right ? `${measurements.retroversionIndex.right}%` : '-', measurements.retroversionIndex.left ? `${measurements.retroversionIndex.left}%` : '-', '0%'],
-      ['Cross-over sign (figure of 8)', measurements.crossoverSign.right ? 'Ja' : 'Nein', measurements.crossoverSign.left ? 'Ja' : 'Nein', 'Nein']
-    ];
+// Function to copy data as HTML table for better pasting into Word/Epic
+const copyToClipboard = () => {
+  // Create rows for our data
+  const rows = [
+    ['Parameter', 'Rechts', 'Links', 'Referenzbereich'],
+    ['MRI', measurements.mri.right ? 'Ja' : 'Nein', measurements.mri.left ? 'Ja' : 'Nein', '-'],
+    ['Femorale Torsion (nach Murphy)', measurements.femoralTorsion.right ? `${measurements.femoralTorsion.right}°` : '-', measurements.femoralTorsion.left ? `${measurements.femoralTorsion.left}°` : '-', '10–25°'],
+    ['Tibiale Torsion (Bimalleolare Methode)', measurements.tibialTorsion.right ? `${measurements.tibialTorsion.right}°` : '-', measurements.tibialTorsion.left ? `${measurements.tibialTorsion.left}°` : '-', '15–30°'],
+    ['Röntgen/EOS', measurements.xrayEOS.right ? 'Ja' : 'Nein', measurements.xrayEOS.left ? 'Ja' : 'Nein', '-'],
+    ['Beinlänge', measurements.legLength.right || 'N/A', measurements.legLength.left || 'N/A', '-'],
+    ['CCD-Winkel', measurements.ccd.right ? `${measurements.ccd.right}°` : '-', measurements.ccd.left ? `${measurements.ccd.left}°` : '-', '120–135°'],
+    ['Alpha-Winkel', measurements.alpha.right ? `${measurements.alpha.right}°` : '-', measurements.alpha.left ? `${measurements.alpha.left}°` : '-', '<60°'],
+    ['LCE-Winkel', measurements.lce.right ? `${measurements.lce.right}°` : '-', measurements.lce.left ? `${measurements.lce.left}°` : '-', '23–33°'],
+    ['Azetabulärer Index', measurements.acetabularIndex.right ? `${measurements.acetabularIndex.right}°` : '-', measurements.acetabularIndex.left ? `${measurements.acetabularIndex.left}°` : '-', '3–13°'],
+    ['Crossing Sign', measurements.crossingSign.right ? 'Ja' : 'Nein', measurements.crossingSign.left ? 'Ja' : 'Nein', 'Nein'],
+    ['Ischial Spine Sign', measurements.ischialSpineSign.right ? 'Ja' : 'Nein', measurements.ischialSpineSign.left ? 'Ja' : 'Nein', 'Nein'],
+    ['Posterior Wall Sign', measurements.posteriorWallSign.right ? 'Ja' : 'Nein', measurements.posteriorWallSign.left ? 'Ja' : 'Nein', 'Nein'],
+    ['Retroversion-Index', measurements.retroversionIndex.right ? `${measurements.retroversionIndex.right}%` : '-', measurements.retroversionIndex.left ? `${measurements.retroversionIndex.left}%` : '-', '0%'],
+    ['Cross-over sign (figure of 8)', measurements.crossoverSign.right ? 'Ja' : 'Nein', measurements.crossoverSign.left ? 'Ja' : 'Nein', 'Nein']
+  ];
 
-    // Format as a table with consistent spacing
-    let formattedTable = '';
-    rows.forEach(row => {
-      formattedTable += row.join('\t') + '\n';
+  // Create HTML table
+  let htmlTable = '<table border="1" cellpadding="4" cellspacing="0">';
+  
+  // Add all rows to the HTML table
+  rows.forEach((row, rowIndex) => {
+    htmlTable += '<tr>';
+    row.forEach((cell, cellIndex) => {
+      // Use th for header row, td for data rows
+      const cellTag = rowIndex === 0 ? 'th' : 'td';
+      htmlTable += `<${cellTag}>${cell}</${cellTag}>`;
     });
+    htmlTable += '</tr>';
+  });
+  
+  htmlTable += '</table>';
+  
+  // Also create plain text version as fallback
+  let plainText = '';
+  rows.forEach(row => {
+    plainText += row.join('\t') + '\n';
+  });
 
-    // Copy to clipboard
-    navigator.clipboard.writeText(formattedTable).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
-  };
+  // Create a temporary element to hold the HTML
+  const tempElement = document.createElement('div');
+  tempElement.innerHTML = htmlTable;
+  document.body.appendChild(tempElement);
+  
+  // Select the content
+  const range = document.createRange();
+  range.selectNode(tempElement);
+  window.getSelection().removeAllRanges();
+  window.getSelection().addRange(range);
+  
+  try {
+    // Try to copy as HTML (this works in most modern browsers)
+    const successful = document.execCommand('copy');
+    
+    if (!successful) {
+      // Fallback to plain text if HTML copy fails
+      navigator.clipboard.writeText(plainText);
+    }
+    
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  } catch (err) {
+    // Final fallback
+    navigator.clipboard.writeText(plainText);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+  
+  // Clean up
+  window.getSelection().removeAllRanges();
+  document.body.removeChild(tempElement);
+};
 
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100 p-4 md:p-8">
