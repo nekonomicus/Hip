@@ -3,7 +3,7 @@ import HipMeasurementInterface from './components/HipMeasurementInterface';
 
 function App() {
   return (
-    <div className="App">
+    <div className="w-full">
       <HipMeasurementInterface />
     </div>
   );
